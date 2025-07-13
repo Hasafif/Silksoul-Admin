@@ -1,6 +1,6 @@
 <script>
 import axios from "axios";
-import showReview from "@/components/admin/showReview.vue";
+import showReview from "@/components/admin/ShowReview.vue";
 
 export default {
   components: { showReview },

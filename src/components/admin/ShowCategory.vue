@@ -24,6 +24,7 @@ export default {
             id: this.categoryID,
           },
         });
+        
 
         this.category = category.data;
         this.dataLoaded = true;

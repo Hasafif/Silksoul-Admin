@@ -16,7 +16,7 @@ export default {
   methods: {
     async showOrder() {
       try {
-        const category = await axios({
+        const order = await axios({
           baseURL: import.meta.env.VITE_BACKENDURL,
           method: "get",
           url: "/admin/order/show",
@@ -51,12 +51,12 @@ export default {
         class="btn btn-sm btn-circle absolute right-2 top-2"
         >✕</label
       >
-      <h3 class="font-bold text-lg">{{ this.order.id }}</h3>
+      <h3 class="font-bold text-lg">{{ this.order._id }}</h3>
       <div class="divider"></div>
 
       <div>
         <div class="flex flex-col flex-wrap gap-4">
-          <div class="whitespace-normal">{{ this.order.id }}</div>
+          <div class="whitespace-normal">{{ this.order._id }}</div>
         </div>
       </div>
     </div>

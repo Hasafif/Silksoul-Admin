@@ -50,7 +50,8 @@ export default {
           method: "get",
           url: "/admin/order/list",
         });
-        this.orders = orders.data;
+        this.orders = orders.data
+        console.log(orders.data);
       } catch (e) {
         console.log(e);
       } finally {
@@ -176,6 +177,8 @@ export default {
               <th>Created At</th>
               <th>Total</th>
               <th>Status</th>
+              <th>Customer Email</th>
+              <th>Customer Phone</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -207,19 +210,25 @@ export default {
               
               <!-- Total -->
               <td>
-                <div class="font-semibold text-lg">{{ formatCurrency(order.productPurchases.subtotal) }}</div>
+                <div class="font-semibold text-lg">{{ formatCurrency(order.totalAmount) }}</div>
               </td>
               
               <!-- Status -->
               <td>
-                <div class="badge" :class="getStatusBadgeClass(order.status)">
-                  {{ order.status || 'Unknown' }}
+                <div class="badge" :class="getStatusBadgeClass(order.paymentStatus)">
+                  {{ order.paymentStatus || 'Unknown' }}
                 </div>
               </td>
-              
+                 <!-- Total -->
+              <td>
+                <div class="font-semibold text-lg">{{ order.customerInfo.email }}</div>
+              </td>
+                  <td>
+                <div class="font-semibold text-lg">{{ order.customerInfo.phone}}</div>
+              </td>
               <!-- Actions -->
               <td class="flex space-x-2">
-                <label :for="'deleteOrder' + key" class="btn btn-error btn-sm">
+                <label :for="'deleteOrder' + key" class="btn btn-error btn-md">
                   Delete
                 </label>
                 <ShowOrder
@@ -247,7 +256,7 @@ export default {
                   </h3>
                   <div class="mb-4">
                     <p class="text-sm text-gray-600">Order ID: {{ order._id }}</p>
-                    <p class="text-sm text-gray-600">Total: {{ formatCurrency(order.total) }}</p>
+                    <p class="text-sm text-gray-600">Total: {{ formatCurrency(order.totalAmount) }}</p>
                   </div>
                   <div class="divider"></div>
                   <div class="flex space-x-4">

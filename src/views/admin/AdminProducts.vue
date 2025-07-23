@@ -1130,7 +1130,7 @@ export default {
         </div>
         <div class="form-control mb-4">
           <label class="label">
-            <span class="label-text">Price ($) *</span>
+            <span class="label-text">Price (AED) *</span>
           </label>
           <input
             type="number"

@@ -19,31 +19,45 @@ export default {
         size: '',
         quantity: null
       },
-      newProduct: {
-        name_english: "",
-        name_arabic: "",
-        description_english: "",
-        description_arabic: "",
-        price: "",
-        quantities: [],
-        sizes: [],
-        categoryName_english: "",
-        color: "#00000", // Default color
-        images: [] // Will store File objects
-      },
+     // NEW: Temporary object for adding a new color variant
+    newColorEntry: {
+      name: '',        // e.g., "Red", "Sky Blue"
+      hex: '#000000',  // The color code
+      images: [],      // File objects for this specific color
+      previewUrls: []  // Preview URLs for this color's images
+    },
+    // Add this to your data() return object
+updateNewColorEntry: {
+  name: '',
+  hex: '#000000',
+  images: [], // For File objects
+  previewUrls: [],
+},
+    
+    // MODIFIED: The main newProduct object
+    newProduct: {
+      name_english: "",
+      name_arabic: "",
+      description_english: "",
+      description_arabic: "",
+      price: "",
+      quantities: [],
+      sizes: [],
+      categoryName_english: "",
+      colors: [] // This will now store an array of color objects
+    },
+    
       updateProduct: {
         id: "",
-        name_english: "",
-        name_arabic: "",
-        description_english: "",
-        description_arabic: "",
-        price: "",
-         quantities: [],
-        sizes: [],
-        categoryName_english: "",
-        color: "#000000",
-        images: [],
-        existingImages: [] // Store existing images from server
+   name_english: "",
+      name_arabic: "",
+      description_english: "",
+      description_arabic: "",
+      price: "",
+      quantities: [],
+      sizes: [],
+      categoryName_english: "",
+      colors: [] // This will now store an array of color objects
       },
       categories: [],
       isLoading: false,
@@ -194,368 +208,342 @@ export default {
  getupdateTotalQuantity() {
   return this.updateProduct.quantities.reduce((total, qty) => total + qty, 0);
 },
-    openAddModal() {
-      this.showAddModal = true;
-      this.newProduct = {
-        name_english: "",
-         name_arabic: "",
-        description_english: "",
-         description_arabic: "",
-        price: "",
-        quantities: [],
-        sizes:[],
-        categoryName_english: "",
-        color: "#000000", // Reset to default color
-        images: []
-      };
-        this.newSizeEntry = {
-        size: '',
-        quantity: null
-      };
-      this.imagePreviewUrls = [];
-      this.loadCategories();
-    },
+    // REPLACE this method
+openAddModal() {
+  this.showAddModal = true;
+  // Reset newProduct with the NEW structure
+  this.newProduct = {
+    name_english: "",
+    name_arabic: "",
+    description_english: "",
+    description_arabic: "",
+    price: "",
+    quantities: [],
+    sizes: [],
+    categoryName_english: "",
+    colors: [] // IMPORTANT: Initialize the new colors array
+  };
+  // Also reset the new temporary color entry form
+  this.newColorEntry = {
+    name: '',
+    hex: '#000000',
+    images: [],
+    previewUrls: []
+  };
+  // Reset size entry as before
+  this.newSizeEntry = {
+    size: '',
+    quantity: null
+  };
+  this.loadCategories();
+},
+onColorFileSelect(event) {
+  const files = Array.from(event.target.files);
+  // By removing the reset lines, we now ADD to the existing arrays
+  files.forEach(file => {
+    this.newColorEntry.images.push(file);
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.newColorEntry.previewUrls.push(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+  // Reset file input to allow selecting the same file again if needed
+  event.target.value = '';
+},
+// Add this new method to your 'methods' object
+removeNewColorImage(index) {
+  this.newColorEntry.images.splice(index, 1);
+  this.newColorEntry.previewUrls.splice(index, 1);
+},
+// Adds the temporary color entry to the main newProduct.colors array
+addColor() {
+  if (!this.newColorEntry.name.trim() || this.newColorEntry.images.length === 0) {
+    alert("Please provide a color name and at least one image.");
+    return;
+  }
+  
+  // Push a copy of the new color entry to the product's colors array
+  this.newProduct.colors.push({
+    name: this.newColorEntry.name,
+    hex: this.newColorEntry.hex,
+    images: this.newColorEntry.images,
+  });
+  
+  // Reset the temporary entry form
+  this.newColorEntry = {
+    name: '',
+    hex: '#000000',
+    images: [],
+    previewUrls: []
+  };
+},
 
-    closeAddModal() {
-      this.showAddModal = false;
-      this.newProduct = {
-        name_english: '',
-        name_arabic: '',
-        description_english: '',
-        description_arabic: '',
-        price: null,
-        sizes: [],
-        quantities: [],
-        categoryName_english: '',
-        color: '#000000',
-        images: []
-      };
-      this.newSizeEntry = {
-        size: '',
-        quantity: null
-      };
-      this.imagePreviewUrls = [];
-      
-    },
-    openUpdateModal(product) {
-      this.showUpdateModal = true;
-      this.updateProduct = {
-        id: product._id,
-        name_english: product.name_english || "",
-        name_arabic: product.name_arabic || "",
-        description_english: product.description_english || "",
-        description_arabic: product.description_arabic || "",
-        price: product.price || "",
-        sizes:product.sizes || [],
-        quantities: product.quantities || [],
-        categoryName_english: product.categoryName_english || "",
-        color: product.color || "#000000",
-        images: [],
-        existingImages: product.images || [],
-        existingImages_ids: product.images_ids || [],
-      };
-        this.newSizeEntry = {
-        size: '',
-        quantity: null
-      };
-      this.updateImagePreviewUrls = [];
-      this.loadCategories();
-    },
+// Removes a color from the newProduct.colors array
+removeColor(index) {
+  this.newProduct.colors.splice(index, 1);
+},
+   // REPLACE this method
+closeAddModal() {
+  this.showAddModal = false;
+  // Reset newProduct with the NEW structure
+  this.newProduct = {
+    name_english: '',
+    name_arabic: '',
+    description_english: '',
+    description_arabic: '',
+    price: null,
+    sizes: [],
+    quantities: [],
+    categoryName_english: '',
+    colors: [] // IMPORTANT: Initialize the new colors array
+  };
+  // Also reset the new temporary color entry form
+  this.newColorEntry = {
+    name: '',
+    hex: '#000000',
+    images: [],
+    previewUrls: []
+  };
+  // Reset size entry as before
+  this.newSizeEntry = {
+    size: '',
+    quantity: null
+  };
+},
+    // REPLACE the old openUpdateModal method
+openUpdateModal(product) {
+  this.showUpdateModal = true;
+  this.updateProduct = {
+    id: product._id,
+    name_english: product.name_english || "",
+    name_arabic: product.name_arabic || "",
+    description_english: product.description_english || "",
+    description_arabic: product.description_arabic || "",
+    price: product.price || "",
+    sizes: [...(product.sizes || [])],
+    quantities: [...(product.quantities || [])],
+    categoryName_english: product.categoryName_english || "",
+    // Deep copy the colors array and add placeholders for new files to be added to existing colors
+    colors: JSON.parse(JSON.stringify(product.colors || [])).map(color => ({
+      ...color,
+      newImages: [], // For new File objects
+      newPreviewUrls: [], // For their previews
+    })),
+  };
 
-    closeUpdateModal() {
-      this.showUpdateModal = false;
-      this.updateProduct = {
-        id: "",
-        name_english: "",
-        name_arabic:"",
-        description_english: "",
-        description_arabic: "",
-        price: "",
-        sizes: [],
-        quantities: [],
-        categoryName_english: "",
-        color: "#000000",
-        images: [],
-        existingImages: [],
-        existingImages_ids: [],
-      };
-      this.updateImagePreviewUrls = [];
-    },
+  // Reset the temporary form for adding a brand new color
+  this.updateNewColorEntry = {
+    name: '',
+    hex: '#000000',
+    images: [],
+    previewUrls: []
+  };
 
-    // Handle file selection for add modal
-    onFileSelect(event) {
-      const files = Array.from(event.target.files);
-      
-      files.forEach(file => {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          alert(`${file.name} is not a valid image file`);
-          return;
-        }
-        
-        // Validate file size (e.g., 5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`${file.name} is too large. Maximum size is 5MB`);
-          return;
-        }
-        
-        // Add file to images array
-        this.newProduct.images.push(file);
-        
-        // Create preview URL
+  this.loadCategories();
+},
+   closeUpdateModal() {
+  this.showUpdateModal = false;
+  this.updateProduct = {
+    id: "",
+    name_english: "",
+    name_arabic: "",
+    description_english: "",
+    description_arabic: "",
+    price: "", // Corrected
+    sizes: [],
+    quantities: [],
+    categoryName_english: "",
+    colors: [],
+  };
+  // Also reset the temporary entry form
+  this.updateNewColorEntry = {
+    name: '',
+    hex: '#000000',
+    images: [],
+    previewUrls: []
+  };
+},
+// ADD THESE NEW METHODS to your component's 'methods' object
+
+// Handles adding more files to an EXISTING color
+onUpdateFileSelect(event, colorIndex) {
+  const files = Array.from(event.target.files);
+  const color = this.updateProduct.colors[colorIndex];
+  files.forEach(file => {
+    color.newImages.push(file);
+    const reader = new FileReader();
+    reader.onload = (e) => color.newPreviewUrls.push(e.target.result);
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+},
+
+// Removes an old, already-saved image
+removeUpdateImage(colorIndex, imageIndex) {
+  this.updateProduct.colors[colorIndex].images.splice(imageIndex, 1);
+  this.updateProduct.colors[colorIndex].images_ids.splice(imageIndex, 1);
+},
+
+// Removes a new, unsaved image preview
+removeNewUpdateImage(colorIndex, previewIndex) {
+    this.updateProduct.colors[colorIndex].newImages.splice(previewIndex, 1);
+    this.updateProduct.colors[colorIndex].newPreviewUrls.splice(previewIndex, 1);
+},
+
+// Removes an entire color variant
+removeUpdateColor(colorIndex) {
+  this.updateProduct.colors.splice(colorIndex, 1);
+},
+
+// --- Methods for adding a BRAND NEW color variant ---
+onUpdateNewColorFileSelect(event) {
+    const files = Array.from(event.target.files);
+    files.forEach(file => {
+        this.updateNewColorEntry.images.push(file);
         const reader = new FileReader();
-        reader.onload = (e) => {
-          this.imagePreviewUrls.push(e.target.result);
-        };
+        reader.onload = (e) => this.updateNewColorEntry.previewUrls.push(e.target.result);
         reader.readAsDataURL(file);
+    });
+    event.target.value = '';
+},
+
+addUpdateColor() {
+    if (!this.updateNewColorEntry.name.trim() || this.updateNewColorEntry.images.length === 0) return;
+    this.updateProduct.colors.push({
+        color: this.updateNewColorEntry.name,
+        colorDeg: this.updateNewColorEntry.hex,
+        images: [], images_ids: [],
+        newImages: this.updateNewColorEntry.images,
+        newPreviewUrls: this.updateNewColorEntry.previewUrls,
+    });
+    this.updateNewColorEntry = { name: '', hex: '#000000', images: [], previewUrls: [] };
+},
+    
+   // REPLACE the old addProduct method with this one
+
+async addProduct() {
+  // --- Validation (add a check for colors) ---
+  if (this.newProduct.colors.length === 0) {
+    alert("Please add at least one color variant with images.");
+    return;
+  }
+  // ... other validation for name, price, etc. ...
+
+  this.isSubmitting = true;
+  try {
+    const formData = new FormData();
+    
+    // Append standard fields
+    formData.append('name_english', this.newProduct.name_english.trim());
+    formData.append('name_arabic', this.newProduct.name_arabic.trim());
+    formData.append('description_english', this.newProduct.description_english.trim());
+    formData.append('description_arabic', this.newProduct.description_arabic.trim());
+    formData.append('price', this.newProduct.price);
+    formData.append('quantity', parseInt(this.getTotalQuantity()));
+    formData.append('categoryname', this.newProduct.categoryName_english.trim());
+
+    // Append sizes and quantities correctly
+    
+    this.newProduct.sizes.forEach(size => formData.append('sizes', size));
+    this.newProduct.quantities.forEach(qty => formData.append('quantities', qty));
+
+    // --- NEW LOGIC FOR COLORS AND IMAGES ---
+    // Iterate over the colors array to append data in the required format
+    this.newProduct.colors.forEach((color, index) => {
+      // 1. Append color metadata using indexed keys
+      formData.append(`colors[${index}][color]`, color.name);
+      formData.append(`colors[${index}][colorDeg]`, color.hex);
+      
+      // 2. Append image files with the special fieldname `color-INDEX`
+      color.images.forEach(file => {
+        formData.append(`color-${index}`, file);
       });
-      
-      // Reset file input
-      event.target.value = '';
-    },
+    });
+   
+    // Send the request
+    await axios({
+      baseURL: import.meta.env.VITE_BACKENDURL,
+      method: "post",
+      url: "/admin/product/create",
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
 
-    // Handle file selection for update modal
-    onUpdateFileSelect(event) {
-      const files = Array.from(event.target.files);
-      
-      files.forEach(file => {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-          alert(`${file.name} is not a valid image file`);
-          return;
-        }
-        
-        // Validate file size (e.g., 5MB limit)
-        if (file.size > 5 * 1024 * 1024) {
-          alert(`${file.name} is too large. Maximum size is 5MB`);
-          return;
-        }
-        
-        // Add file to images array
-        this.updateProduct.images.push(file);
-        
-        // Create preview URL
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.updateImagePreviewUrls.push(e.target.result);
-        };
-        reader.readAsDataURL(file);
+    this.closeAddModal();
+    await this.loadProducts();
+    console.log("Product added successfully");
+
+  } catch (e) {
+    console.error(e);
+    alert("Error adding product. Please check the console and try again.");
+  } finally {
+    this.isSubmitting = false;
+  }
+},
+
+   // REPLACE the old updateProductSubmit method
+async updateProductSubmit() {
+  this.isSubmitting = true;
+  try {
+    const formData = new FormData();
+    
+    // 1. Append ALL simple fields
+    formData.append('id', this.updateProduct.id);
+    formData.append('name_english', this.updateProduct.name_english);
+    formData.append('name_arabic', this.updateProduct.name_arabic); // ADD THIS
+    formData.append('price', this.updateProduct.price); // ADD THIS
+    formData.append('description_english', this.updateProduct.description_english); // ADD THIS
+    formData.append('description_arabic', this.updateProduct.description_arabic); // ADD THIS
+    formData.append('categoryname', this.updateProduct.categoryName_english); // ADD THIS
+    
+    // Append sizes and quantities
+    this.updateProduct.sizes.forEach(s => formData.append('sizes', s));
+    this.updateProduct.quantities.forEach(q => formData.append('quantities', q));
+
+    // 2. Separate colors into existing and new
+    const existingColors = this.updateProduct.colors.filter(c => c._id);
+    const newColors = this.updateProduct.colors.filter(c => !c._id);
+
+    // 3. Process and append EXISTING colors
+    const cleanExistingColors = existingColors.map(color => {
+      color.newImages.forEach(file => {
+        formData.append(`existing-color-${color._id}`, file);
       });
-      
-      // Reset file input
-      event.target.value = '';
-    },
+      return { _id: color._id, color: color.color, colorDeg: color.colorDeg, images: color.images, images_ids: color.images_ids };
+    });
+    formData.append('existingColors', JSON.stringify(cleanExistingColors));
 
-    // Remove image from selection (add modal)
-    removeImage(index) {
-      this.newProduct.images.splice(index, 1);
-      this.imagePreviewUrls.splice(index, 1);
-    },
+    // 4. Process and append NEW colors
+    const cleanNewColors = newColors.map((color, index) => {
+      color.newImages.forEach(file => {
+        formData.append(`new-color-${index}`, file);
+      });
+      return { color: color.color, colorDeg: color.colorDeg };
+    });
+    formData.append('newColors', JSON.stringify(cleanNewColors));
 
-    // Remove new image from update modal
-    removeUpdateImage(index) {
-      this.updateProduct.images.splice(index, 1);
-      this.updateImagePreviewUrls.splice(index, 1);
-    },
+    // 5. Make the API call
+    await axios({
+      baseURL: import.meta.env.VITE_BACKENDURL,
+      method: "put",
+      url: "/admin/product/update",
+      data: formData,
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
 
-    // Remove existing image from update modal
-    removeExistingImage(index) {
-      this.updateProduct.existingImages.splice(index, 1);
-      this.updateProduct.existingImages_ids.splice(index, 1);
-    },
-
-    async addProduct() {
-      console.log(this.newProduct.images);
-      
-      if (!this.newProduct.name_english.trim() || !this.newProduct.name_arabic.trim()) {
-        alert("Please enter a product name");
-        return;
-      }
-
-      if (!this.newProduct.description_english.trim() || !this.newProduct.description_arabic.trim()) {
-        alert("Please enter a product description");
-        return;
-      }
-
-      if (!this.newProduct.price || this.newProduct.price <= 0) {
-        alert("Please enter a valid price");
-        return;
-      }
-
-      if (!this.newProduct.quantities || this.newProduct.quantities < 0) {
-        alert("Please enter a valid quantity");
-        return;
-      }
-    if (!this.newProduct.sizes || this.newProduct.sizes < 0) {
-        alert("Please enter a valid quantity");
-        return;
-      }
-      if (!this.newProduct.categoryName_english.trim()) {
-        alert("Please select a category");
-        return;
-      }
-
-      if (!this.newProduct.color) {
-        alert("Please select a color");
-        return;
-      }
-
-      this.isSubmitting = true;
-      try {
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('name_english', this.newProduct.name_english.trim());
-        formData.append('name_arabic', this.newProduct.name_arabic.trim());
-        formData.append('description_english', this.newProduct.description_english.trim());
-        formData.append('description_arabic', this.newProduct.description_arabic.trim());
-        formData.append('price', this.newProduct.price);
-        formData.append('quantity', parseInt(this.getTotalQuantity()));
-        formData.append('categoryname', this.newProduct.categoryName_english.trim());
-        formData.append('color', this.newProduct.color);
-        
-        // Append each image file
-        this.newProduct.images.forEach((file, index) => {
-          formData.append('images', file);
-          
-        });
-        formData.append('sizes', '');
-        formData.append('sizes', '');
-         this.newProduct.sizes.forEach((size, index) => {
-          formData.append('sizes', size);
-        });
-        formData.append('quantities', '');
-        formData.append('quantities', '');
-         this.newProduct.quantities.forEach((quantity, index) => {
-          formData.append('quantities', quantity);
-        });
-        // Debug: Check what's being sent
-        console.log('FormData contents:');
-        for (let [key, value] of formData.entries()) {
-          console.log(key, value);
-        }
-        console.log('FormData object:', formData);
-        console.log('FormData instanceof FormData:', formData instanceof FormData);
-        
-        await axios({
-          baseURL: import.meta.env.VITE_BACKENDURL,
-          method: "post",
-          url: "/admin/product/create",
-          data: formData,
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-
-        // Close modal and refresh products
-        this.closeAddModal();
-        await this.loadProducts();
-        
-        console.log("Product added successfully");
-      } catch (e) {
-        console.log(e);
-        alert("Error adding product. Please try again.");
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
-
-    async updateProductSubmit() {
-      if (!this.updateProduct.name_english.trim() || !this.updateProduct.name_arabic.trim()) {
-        alert("Please enter a product name");
-        return;
-      }
-
-      if (!this.updateProduct.description_english.trim() || !this.updateProduct.description_arabic.trim()) {
-        alert("Please enter a product description");
-        return;
-      }
-
-      if (!this.updateProduct.price || this.updateProduct.price <= 0) {
-        alert("Please enter a valid price");
-        return;
-      }
-
-      if (!this.updateProduct.quantities || this.updateProduct.quantities < 0) {
-        alert("Please enter a valid quantity");
-        return;
-      }
- if (!this.updateProduct.sizes || this.updateProduct.sizes < 0) {
-        alert("Please enter a valid quantity");
-        return;
-      }
-      if (!this.updateProduct.categoryName_english.trim()) {
-        alert("Please select a category");
-        return;
-      }
-
-      if (!this.updateProduct.color) {
-        alert("Please select a color");
-        return;
-      }
-
-      this.isSubmitting = true;
-      try {
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('id', this.updateProduct.id);
-        formData.append('name_english', this.updateProduct.name_english.trim());
-        formData.append('name_arabic', this.updateProduct.name_arabic.trim());
-        formData.append('description_english', this.updateProduct.description_english.trim());
-        formData.append('description_arabic', this.updateProduct.description_arabic.trim());
-        formData.append('price', this.updateProduct.price);
-        formData.append('categoryname', this.updateProduct.categoryName_english.trim());
-        formData.append('color', this.updateProduct.color);
-        formData.append('quantity', parseInt(this.getupdateTotalQuantity()));
-
-        // Append existing images that weren't removed
-        //formData.append('existingImages', this.updateProduct.existingImages);
-         // Append new image files
-         formData.append('existingImages', '');
-         formData.append('existingImages', '');
-         this.updateProduct.existingImages.forEach((file,index) => {
-          formData.append('existingImages', file);
-        });
-        // Append new image files
-        this.updateProduct.images.forEach((file, index) => {
-          formData.append('images', file);
-        });
-         formData.append('existingImages_ids', '');
-         formData.append('existingImages_ids', '');
- this.updateProduct.existingImages_ids.forEach((id, index) => {
-          formData.append('existingImages_ids', id);
-        });
-        formData.append('sizes', '');
-        formData.append('sizes', '');
-          this.updateProduct.sizes.forEach((size, index) => {
-          formData.append('sizes', size);
-        });
-        formData.append('quantities','');
-        formData.append('quantities','');
-        this.updateProduct.quantities.forEach((quantity, index) => {
-          formData.append('quantities',quantity);
-        });
-        await axios({
-          baseURL: import.meta.env.VITE_BACKENDURL,
-          method: "put",
-          url: "/admin/product/update",
-          data: formData,
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-
-        // Close modal and refresh products
-        this.closeUpdateModal();
-        await this.loadProducts();
-        
-        console.log("Product updated successfully");
-      } catch (e) {
-        console.log(e);
-        alert("Error updating product. Please try again.");
-      } finally {
-        this.isSubmitting = false;
-      }
-    },
+    this.closeUpdateModal();
+    await this.loadProducts();
+  } catch (e) {
+    console.error(e);
+    alert("Error updating product.");
+  } finally {
+    this.isSubmitting = false;
+  }
+},
 
     clearSearch() {
       this.searchQuery = "";
@@ -575,8 +563,8 @@ export default {
     },
 
     getCoverImage(product) {
-      if (product.images && product.images.length > 0) {
-        return product.images[0];
+      if (product.colors && product.colors.length > 0) {
+        return product.colors[0].images[0];
       }
       return null;
     },
@@ -651,7 +639,6 @@ export default {
               <th>Price</th>
               <th>Quantity</th>
               <th>Category</th>
-              <th>Color</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -705,15 +692,6 @@ export default {
               </td>
               <td>
                 <div class="font-medium">{{ product.categoryName_english }}</div>
-              </td>
-              <td>
-                <div class="flex items-center gap-2">
-                  <div 
-                    class="w-6 h-6 rounded-full border-2 border-gray-300"
-                    :style="{ backgroundColor: product.color || '#000000' }"
-                  ></div>
-                  <span class="text-sm font-mono">{{ product.color || '#000000' }}</span>
-                </div>
               </td>
               <td class="flex space-x-2">
                 <button 
@@ -952,108 +930,108 @@ export default {
       </select>
     </div>
     
-    <!-- Color Input Field -->
-    <div class="form-control mb-4">
-      <label class="label">
-        <span class="label-text">Color *</span>
-      </label>
-      <div class="flex items-center gap-3">
+<div class="form-control mb-4">
+  <label class="label">
+    <span class="label-text">Product Colors & Images *</span>
+  </label>
+  
+  <div class="bg-gray-50 p-4 rounded-lg mb-4 border">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="label"><span class="label-text-alt">Color Name</span></label>
         <input
-          type="color"
-          class="w-16 h-12 border border-gray-300 rounded cursor-pointer"
-          v-model="newProduct.color"
-          :disabled="isSubmitting"
+          type="text"
+          placeholder="e.g., Ocean Blue"
+          class="input input-bordered w-full"
+          v-model="newColorEntry.name"
         />
+      </div>
+      
+      <div class="flex items-end gap-3">
         <div class="flex-1">
+          <label class="label"><span class="label-text-alt">Color Hex Code</span></label>
           <input
             type="text"
-            placeholder="#000000"
+            placeholder="#0000FF"
             class="input input-bordered w-full font-mono text-sm"
-            v-model="newProduct.color"
-            :disabled="isSubmitting"
-            pattern="^#[0-9A-Fa-f]{6}$"
-            title="Please enter a valid hex color code (e.g., #FF0000)"
+            v-model="newColorEntry.hex"
           />
         </div>
+        <input
+          type="color"
+          class="w-12 h-12 p-1 border border-gray-300 rounded cursor-pointer"
+          v-model="newColorEntry.hex"
+        />
       </div>
-      <label class="label">
-        <span class="label-text-alt">Select a color or enter hex code</span>
-      </label>
     </div>
     
-    <!-- Image Upload Section -->
-    <div class="form-control mb-4">
-      <label class="label">
-        <span class="label-text">Product Images</span>
-      </label>
-      
-      <!-- File Input -->
-      <div class="mb-4">
-        <input
-          type="file"
-          multiple
-          accept="image/*"
-          class="file-input file-input-bordered w-full"
-          @change="onFileSelect"
-          :disabled="isSubmitting"
-        />
-        <div class="label">
-          <span class="label-text-alt">Select multiple images (max 5MB each)</span>
-        </div>
-      </div>
-      
-      <!-- Image Previews -->
-      <div v-if="newProduct.images.length > 0" class="space-y-3">
-        <div class="text-sm text-gray-600 mb-2">
-          Selected Images ({{ newProduct.images.length }}):
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div
-            v-for="(image, index) in newProduct.images"
-            :key="index"
-            class="relative bg-gray-50 rounded-lg p-3 border"
-          >
-            <!-- Image Preview -->
-            <div class="w-full h-24 rounded overflow-hidden bg-gray-200 mb-2">
-              <img
-                :src="imagePreviewUrls[index]"
-                :alt="`Preview ${index + 1}`"
-                class="w-full h-full object-cover"
-              />
-            </div>
-            
-            <!-- File Info -->
-            <div class="text-xs text-gray-600 mb-2">
-              <div class="truncate font-medium">{{ image.name }}</div>
-              <div>{{ (image.size / 1024).toFixed(1) }} KB</div>
-            </div>
-            
-            <!-- Remove Button -->
-            <button
-              type="button"
-              @click="removeImage(index)"
-              class="absolute top-1 right-1 btn btn-ghost btn-xs btn-circle bg-red-500 hover:bg-red-600 text-white"
-              :disabled="isSubmitting"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- No Images Message -->
-      <div v-else class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
-        No images selected. Click "Choose Files" to upload product images.
-      </div>
+    <div class="mt-4">
+      <label class="label"><span class="label-text-alt">Images for this Color</span></label>
+      <input
+        type="file"
+        multiple
+        accept="image/*"
+        class="file-input file-input-bordered w-full"
+        @change="onColorFileSelect"
+        :disabled="isSubmitting"
+      />
     </div>
+    
+<div v-if="newColorEntry.previewUrls.length > 0" class="mt-3 grid grid-cols-3 gap-2">
+  <div v-for="(url, index) in newColorEntry.previewUrls" :key="index" class="relative">
+    <img :src="url" class="w-full h-20 object-cover rounded"/>
+    <button
+      type="button"
+      @click="removeNewColorImage(index)"
+      class="absolute top-1 right-1 btn btn-xs btn-circle bg-red-500 text-white hover:bg-red-600"
+    >
+      ✕
+    </button>
+  </div>
+</div>
+    
+    <button
+      type="button"
+      @click="addColor"
+      class="btn btn-primary btn-sm mt-4"
+      :disabled="!newColorEntry.name.trim() || newColorEntry.images.length === 0"
+    >
+      Add Color Variant
+    </button>
+  </div>
+  
+  <div v-if="newProduct.colors.length > 0" class="space-y-3">
+    <div class="text-sm text-gray-600">
+      Added Variants ({{ newProduct.colors.length }}):
+    </div>
+    <div v-for="(color, index) in newProduct.colors" :key="index" class="flex items-center justify-between bg-white p-3 rounded-lg border">
+      <div class="flex items-center gap-4">
+        <div :style="{ backgroundColor: color.hex }" class="w-8 h-8 rounded-full border"></div>
+        <div>
+          <div class="font-bold">{{ color.name }}</div>
+          <div class="text-xs text-gray-500">{{ color.images.length }} image(s)</div>
+        </div>
+      </div>
+      <button
+        type="button"
+        @click="removeColor(index)"
+        class="btn btn-ghost btn-sm btn-circle hover:bg-red-100"
+        :disabled="isSubmitting"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      </button>
+    </div>
+  </div>
+  <div v-else class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
+    No color variants added yet.
+  </div>
+</div>
     
     <div class="flex space-x-4">
       <button
         @click="addProduct"
         class="btn btn-primary"
-        :disabled="isSubmitting || !newProduct.name_english.trim() || !newProduct.description_english.trim() || !newProduct.price || newProduct.sizes.length === 0 || !newProduct.categoryName_english.trim() || !newProduct.color"
+        :disabled="isSubmitting || !newProduct.name_english.trim() || !newProduct.description_english.trim() || !newProduct.price || newProduct.sizes.length === 0 || !newProduct.categoryName_english.trim() || newProduct.colors.length===0"
       >
         <span v-if="isSubmitting" class="loading loading-spinner loading-sm mr-2"></span>
         {{ isSubmitting ? 'Adding...' : 'Add Product' }}
@@ -1253,149 +1231,77 @@ export default {
           </select>
         </div>
         
-        <!-- Color Input Field -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Color *</span>
-          </label>
-          <div class="flex items-center gap-3">
-            <input
-              type="color"
-              class="w-16 h-12 border border-gray-300 rounded cursor-pointer"
-              v-model="updateProduct.color"
-              :disabled="isSubmitting"
-            />
+       <div class="form-control mb-4">
+    <label class="label"><span class="label-text font-bold">Manage Color Variants</span></label>
+    <div v-if="updateProduct.colors.length > 0" class="space-y-4">
+<div v-for="(color, colorIndex) in updateProduct.colors" :key="color._id || colorIndex" class="bg-gray-50 p-3 rounded-lg border">
+<div class="flex justify-between items-center mb-2">
+    <div class="flex items-center gap-3 flex-grow">
+        <input 
+            type="color" 
+            v-model="color.colorDeg"
+            class="p-0 w-8 h-8 border-none rounded cursor-pointer"
+        />
+        <input 
+            type="text"
+            v-model="color.color"
+            class="input input-bordered input-sm w-full max-w-xs" 
+        />
+    </div>
+    <button type="button" @click="removeUpdateColor(colorIndex)" class="btn btn-xs btn-error btn-outline ml-2">Remove Variant</button>
+</div>
+            
+            <div class="text-xs mb-2">Images:</div>
+            <div class="grid grid-cols-4 gap-2 mb-3">
+                <div v-for="(img, imgIndex) in color.images" :key="img" class="relative">
+                    <img :src="img" class="w-full h-16 object-cover rounded" />
+                    <button type="button" @click="removeUpdateImage(colorIndex, imgIndex)" class="absolute top-1 right-1 btn btn-xs btn-circle bg-red-500 text-white">✕</button>
+                </div>
+                <div v-for="(url, previewIndex) in color.newPreviewUrls" :key="url" class="relative">
+                    <img :src="url" class="w-full h-16 object-cover rounded border-2 border-primary" />
+                     <button type="button" @click="removeNewUpdateImage(colorIndex, previewIndex)" class="absolute top-1 right-1 btn btn-xs btn-circle bg-red-500 text-white">✕</button>
+                </div>
+            </div>
+
+            <input type="file" multiple @change="onUpdateFileSelect($event, colorIndex)" class="file-input file-input-bordered file-input-sm w-full" placeholder="Add more images..." />
+        </div>
+    </div>
+</div>
+
+<div class="form-control mb-4">
+    <label class="label"><span class="label-text font-bold">Add New Color Variant</span></label>
+<div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label class="label"><span class="label-text-alt">New Color Name</span></label>
+            <input type="text" placeholder="e.g., Forest Green" class="input input-bordered w-full" v-model="updateNewColorEntry.name" />
+        </div>
+        <div class="flex items-end gap-3">
             <div class="flex-1">
-              <input
-                type="text"
-                placeholder="#000000"
-                class="input input-bordered w-full font-mono text-sm"
-                v-model="updateProduct.color"
-                :disabled="isSubmitting"
-                pattern="^#[0-9A-Fa-f]{6}$"
-                title="Please enter a valid hex color code (e.g., #FF0000)"
-              />
+                <label class="label"><span class="label-text-alt">Hex Code</span></label>
+                <input type="text" placeholder="#228B22" class="input input-bordered w-full" v-model="updateNewColorEntry.hex" />
             </div>
-          </div>
-          <label class="label">
-            <span class="label-text-alt">Select a color or enter hex code</span>
-          </label>
+            <input type="color" class="w-12 h-12 p-1 border rounded" v-model="updateNewColorEntry.hex" />
         </div>
-        
-        <!-- Image Upload Section -->
-        <div class="form-control mb-4">
-          <label class="label">
-            <span class="label-text">Product Images</span>
-          </label>
-          
-          <!-- Existing Images -->
-          <div v-if="updateProduct.existingImages.length > 0" class="mb-4">
-            <div class="text-sm text-gray-600 mb-2">
-              Current Images ({{ updateProduct.existingImages.length }}):
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div
-                v-for="(image, index) in updateProduct.existingImages"
-                :key="'existing-' + index"
-                class="relative bg-gray-50 rounded-lg p-3 border"
-              >
-                <!-- Image Preview -->
-                <div class="w-full h-24 rounded overflow-hidden bg-gray-200 mb-2">
-                  <img
-                    :src="image"
-                    :alt="`Existing ${index + 1}`"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                
-                <!-- File Info -->
-                <div class="text-xs text-gray-600 mb-2">
-                  <div class="truncate font-medium">Existing Image {{ index + 1 }}</div>
-                </div>
-                
-                <!-- Remove Button -->
-                <button
-                  type="button"
-                  @click="removeExistingImage(index)"
-                  class="absolute top-1 right-1 btn btn-ghost btn-xs btn-circle bg-red-500 hover:bg-red-600 text-white"
-                  :disabled="isSubmitting"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- File Input for New Images -->
-          <div class="mb-4">
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              class="file-input file-input-bordered w-full"
-              @change="onUpdateFileSelect"
-              :disabled="isSubmitting"
-            />
-            <div class="label">
-              <span class="label-text-alt">Select additional images (max 5MB each)</span>
-            </div>
-          </div>
-          
-          <!-- New Image Previews -->
-          <div v-if="updateProduct.images.length > 0" class="space-y-3">
-            <div class="text-sm text-gray-600 mb-2">
-              New Images ({{ updateProduct.images.length }}):
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div
-                v-for="(image, index) in updateProduct.images"
-                :key="'new-' + index"
-                class="relative bg-gray-50 rounded-lg p-3 border"
-              >
-                <!-- Image Preview -->
-                <div class="w-full h-24 rounded overflow-hidden bg-gray-200 mb-2">
-                  <img
-                    :src="updateImagePreviewUrls[index]"
-                    :alt="`New Preview ${index + 1}`"
-                    class="w-full h-full object-cover"
-                  />
-                </div>
-                
-                <!-- File Info -->
-                <div class="text-xs text-gray-600 mb-2">
-                  <div class="truncate font-medium">{{ image.name }}</div>
-                  <div>{{ (image.size / 1024).toFixed(1) }} KB</div>
-                </div>
-                
-                <!-- Remove Button -->
-                <button
-                  type="button"
-                  @click="removeUpdateImage(index)"
-                  class="absolute top-1 right-1 btn btn-ghost btn-xs btn-circle bg-red-500 hover:bg-red-600 text-white"
-                  :disabled="isSubmitting"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <!-- No Images Message -->
-          <div v-if="updateProduct.existingImages.length === 0 && updateProduct.images.length === 0" class="text-sm text-gray-500 italic bg-gray-50 p-4 rounded-lg text-center">
-            No images selected. Click "Choose Files" to upload product images.
-          </div>
-        </div>
-        
+    </div>
+    <div class="mt-4">
+        <label class="label"><span class="label-text-alt">Images for New Color</span></label>
+        <input type="file" multiple class="file-input file-input-bordered w-full" @change="onUpdateNewColorFileSelect" />
+    </div>
+    <div v-if="updateNewColorEntry.previewUrls.length > 0" class="mt-3 grid grid-cols-3 gap-2">
+        <img v-for="url in updateNewColorEntry.previewUrls" :src="url" class="w-full h-20 object-cover rounded" />
+    </div>
+    <button type="button" @click="addUpdateColor" class="btn btn-primary btn-sm mt-4" :disabled="!updateNewColorEntry.name.trim() || updateNewColorEntry.images.length === 0">
+        Add This New Variant
+    </button>
+</div>
+</div>
         <div class="flex space-x-4">
           <button
             @click="updateProductSubmit"
             class="btn btn-warning"
             :disabled="isSubmitting || !updateProduct.name_english.trim() || !updateProduct.name_arabic ||
-            !updateProduct.description_english.trim() ||!updateProduct.description_arabic.trim()|| !updateProduct.price || !updateProduct.quantities || !updateProduct.sizes || !updateProduct.categoryName_english.trim() || !updateProduct.color
+            !updateProduct.description_english.trim() ||!updateProduct.description_arabic.trim()|| !updateProduct.price || !updateProduct.quantities || !updateProduct.sizes || !updateProduct.categoryName_english.trim() || !updateProduct.colors
             "
           >
             <span v-if="isSubmitting" class="loading loading-spinner loading-sm mr-2"></span>
